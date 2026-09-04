@@ -72,3 +72,6 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+# Generated Live SOC Simulation Logs & Reports
+reports/
