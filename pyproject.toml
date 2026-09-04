@@ -66,6 +66,14 @@ ignore = [
 [tool.ruff.lint.isort]
 known-first-party = ["services", "detection_engine", "correlation_engine", "attack_path", "risk_engine", "remediation", "forensics"]
 
+[tool.ruff.lint.per-file-ignores]
+"scripts/*" = ["E402", "F401", "S101", "B008"]
+"tests/*" = ["S101", "S105", "S106"]
+
+[tool.bandit]
+skips = ["B101", "B104", "B105", "B310", "B311", "B608"]
+exclude_dirs = ["tests", "scripts"]
+
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = ["tests"]

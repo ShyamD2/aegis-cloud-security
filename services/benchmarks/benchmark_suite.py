@@ -17,6 +17,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from detection_engine.enrichment import EventEnricher
 from detection_engine.evaluator import DetectionEvaluator
 from services.attack_path import build_enterprise_attack_graph
+from services.common.models import FindingSeverity
 from services.forensics import EvidenceCollector, EvidenceType
 from services.remediation import (
     RemediationAction,
@@ -192,7 +193,7 @@ class LifecycleLatencyBenchmark:
             t4 = time.perf_counter()
             context = RiskContext(
                 finding_id=finding.finding_id if finding else "f-synthetic",
-                detection_severity=finding.severity if finding else "HIGH",
+                detection_severity=finding.severity if finding else FindingSeverity.HIGH,
                 confidence=finding.confidence if finding else 0.85,
                 asset_criticality=5.0,
                 privilege_level=PrivilegeLevel.IAM_WRITE,

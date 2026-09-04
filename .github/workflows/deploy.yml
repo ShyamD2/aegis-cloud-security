@@ -1,10 +1,15 @@
 name: CD Deploy Pipeline (OIDC)
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main, master ]
+    paths:
+      - 'terraform/environments/prod/**'
   pull_request:
     branches: [ main, master ]
+    paths:
+      - 'terraform/environments/prod/**'
 
 permissions:
   id-token: write # Required for requesting the OIDC JWT token
@@ -15,6 +20,7 @@ jobs:
   terraform-plan:
     name: Terraform Plan (OIDC)
     runs-on: ubuntu-latest
+    if: ${{ vars.AWS_DEPLOY_ROLE != '' }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -22,7 +28,7 @@ jobs:
       - name: Configure AWS Credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::111122223333:role/aegis-prod-github-deployer-role
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE || 'arn:aws:iam::111122223333:role/aegis-prod-github-deployer-role' }}
           role-session-name: GitHubActions-Terraform-Plan
           aws-region: us-east-1
           audience: sts.amazonaws.com

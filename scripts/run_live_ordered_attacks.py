@@ -116,7 +116,9 @@ class OrderedAttackSuite:
             logger.info("DynamoDB Safety Gate: OK (Kill-switch: ENABLED, Lab: ACTIVE)")
             return True
         except Exception as e:
-            logger.warning(f"Could not read config table ({e}); proceeding with local safety boundary.")
+            logger.warning(
+                f"Could not read config table ({e}); proceeding with local safety boundary."
+            )
             return True
 
     def _record_in_aws(self, exec_record: dict[str, Any], evidence_payload: dict[str, Any]) -> str:
@@ -174,7 +176,9 @@ class OrderedAttackSuite:
             {"Environment": "aegis-security-lab", "Project": "aegis"},
         )
 
-        logger.info(f"  [STAGE 1: ATTACK] Creating temporary access key for {TARGET_IAM_USER} on AWS...")
+        logger.info(
+            f"  [STAGE 1: ATTACK] Creating temporary access key for {TARGET_IAM_USER} on AWS..."
+        )
         try:
             resp = self.iam.create_access_key(UserName=TARGET_IAM_USER)
             created_key_id = resp["AccessKey"]["AccessKeyId"]
@@ -211,9 +215,13 @@ class OrderedAttackSuite:
         finding = rule.evaluate(enriched)
         det_latency_ms = round((time.time() - t_det_start) * 1000, 2)
         assert finding is not None and finding.rule_id == "AEGIS-DET-001"
-        logger.info(f"  [STAGE 2: DETECTION] Matched {finding.rule_id} ({finding.title}) in {det_latency_ms}ms")
+        logger.info(
+            f"  [STAGE 2: DETECTION] Matched {finding.rule_id} ({finding.title}) in {det_latency_ms}ms"
+        )
 
-        blast = self.graph.calculate_blast_radius(f"arn:aws:iam::{ACCOUNT_ID}:user/aegis-lab/{TARGET_IAM_USER}")
+        blast = self.graph.calculate_blast_radius(
+            f"arn:aws:iam::{ACCOUNT_ID}:user/aegis-lab/{TARGET_IAM_USER}"
+        )
         risk = self.risk_engine.evaluate(
             RiskContext(
                 finding_id=finding.finding_id,
@@ -226,10 +234,14 @@ class OrderedAttackSuite:
                 anomaly_score=0.85,
             )
         )
-        logger.info(f"  [STAGE 3: RISK] Evaluated Score: {risk.risk_score}/100 ({risk.risk_level.value})")
+        logger.info(
+            f"  [STAGE 3: RISK] Evaluated Score: {risk.risk_score}/100 ({risk.risk_level.value})"
+        )
 
         t_cont_start = time.time()
-        logger.info(f"  [STAGE 4: CONTAINMENT] Executing autonomous key deactivation for {created_key_id}...")
+        logger.info(
+            f"  [STAGE 4: CONTAINMENT] Executing autonomous key deactivation for {created_key_id}..."
+        )
         if created_key_id.startswith("AKIA") and not created_key_id.startswith("AKIAEXAMPLE"):
             try:
                 self.iam.update_access_key(
@@ -264,7 +276,10 @@ class OrderedAttackSuite:
             "containment_latency_ms": cont_latency_ms,
             "total_latency_ms": total_latency_ms,
         }
-        self._record_in_aws(record, {"finding": finding.model_dump(mode="json"), "risk": risk.model_dump(mode="json")})
+        self._record_in_aws(
+            record,
+            {"finding": finding.model_dump(mode="json"), "risk": risk.model_dump(mode="json")},
+        )
         return record
 
     def run_scenario_02(self) -> dict[str, Any]:
@@ -278,7 +293,9 @@ class OrderedAttackSuite:
             {"Environment": "aegis-security-lab", "Project": "aegis"},
         )
 
-        logger.info(f"  [STAGE 1: ATTACK] Simulating unauthorized external AssumeRole to {TARGET_ROLE_ARN}...")
+        logger.info(
+            f"  [STAGE 1: ATTACK] Simulating unauthorized external AssumeRole to {TARGET_ROLE_ARN}..."
+        )
         t_det_start = time.time()
         raw_event = {
             "eventVersion": "1.08",
@@ -308,7 +325,9 @@ class OrderedAttackSuite:
         finding = rule.evaluate(enriched)
         det_latency_ms = round((time.time() - t_det_start) * 1000, 2)
         assert finding is not None and finding.rule_id == "AEGIS-DET-003"
-        logger.info(f"  [STAGE 2: DETECTION] Matched {finding.rule_id} ({finding.title}) in {det_latency_ms}ms")
+        logger.info(
+            f"  [STAGE 2: DETECTION] Matched {finding.rule_id} ({finding.title}) in {det_latency_ms}ms"
+        )
 
         blast = self.graph.calculate_blast_radius(TARGET_ROLE_ARN)
         risk = self.risk_engine.evaluate(
@@ -322,7 +341,9 @@ class OrderedAttackSuite:
                 anomaly_score=0.9,
             )
         )
-        logger.info(f"  [STAGE 3: RISK] Evaluated Score: {risk.risk_score}/100 ({risk.risk_level.value})")
+        logger.info(
+            f"  [STAGE 3: RISK] Evaluated Score: {risk.risk_score}/100 ({risk.risk_level.value})"
+        )
 
         t_cont_start = time.time()
         rem_req = RemediationRequest(
@@ -355,7 +376,10 @@ class OrderedAttackSuite:
             "containment_latency_ms": cont_latency_ms,
             "total_latency_ms": total_latency_ms,
         }
-        self._record_in_aws(record, {"finding": finding.model_dump(mode="json"), "risk": risk.model_dump(mode="json")})
+        self._record_in_aws(
+            record,
+            {"finding": finding.model_dump(mode="json"), "risk": risk.model_dump(mode="json")},
+        )
         return record
 
     def run_scenario_03(self) -> dict[str, Any]:
@@ -370,7 +394,9 @@ class OrderedAttackSuite:
             {"Environment": "aegis-security-lab", "Project": "aegis"},
         )
 
-        logger.info(f"  [STAGE 1: ATTACK] Simulating inline policy escalation on {TARGET_IAM_USER}...")
+        logger.info(
+            f"  [STAGE 1: ATTACK] Simulating inline policy escalation on {TARGET_IAM_USER}..."
+        )
         t_det_start = time.time()
         raw_event = {
             "eventVersion": "1.08",
@@ -401,7 +427,9 @@ class OrderedAttackSuite:
         finding = rule.evaluate(enriched)
         det_latency_ms = round((time.time() - t_det_start) * 1000, 2)
         assert finding is not None and finding.rule_id == "AEGIS-DET-004"
-        logger.info(f"  [STAGE 2: DETECTION] Matched {finding.rule_id} ({finding.title}) in {det_latency_ms}ms")
+        logger.info(
+            f"  [STAGE 2: DETECTION] Matched {finding.rule_id} ({finding.title}) in {det_latency_ms}ms"
+        )
 
         blast = self.graph.calculate_blast_radius(user_arn)
         risk = self.risk_engine.evaluate(
@@ -415,7 +443,9 @@ class OrderedAttackSuite:
                 anomaly_score=0.95,
             )
         )
-        logger.info(f"  [STAGE 3: RISK] Evaluated Score: {risk.risk_score}/100 ({risk.risk_level.value})")
+        logger.info(
+            f"  [STAGE 3: RISK] Evaluated Score: {risk.risk_score}/100 ({risk.risk_level.value})"
+        )
 
         t_cont_start = time.time()
         rem_req = RemediationRequest(
@@ -448,7 +478,10 @@ class OrderedAttackSuite:
             "containment_latency_ms": cont_latency_ms,
             "total_latency_ms": total_latency_ms,
         }
-        self._record_in_aws(record, {"finding": finding.model_dump(mode="json"), "risk": risk.model_dump(mode="json")})
+        self._record_in_aws(
+            record,
+            {"finding": finding.model_dump(mode="json"), "risk": risk.model_dump(mode="json")},
+        )
         return record
 
     def run_scenario_04(self) -> dict[str, Any]:
@@ -463,7 +496,9 @@ class OrderedAttackSuite:
             {"Environment": "aegis-security-lab", "Project": "aegis"},
         )
 
-        logger.info(f"  [STAGE 1: ATTACK] Removing S3 Public Access Block on AWS {TARGET_S3_BUCKET}...")
+        logger.info(
+            f"  [STAGE 1: ATTACK] Removing S3 Public Access Block on AWS {TARGET_S3_BUCKET}..."
+        )
         try:
             self.s3.delete_public_access_block(Bucket=TARGET_S3_BUCKET)
             logger.info("  [ATTACK SUCCESS] Deleted Public Access Block on AWS S3.")
@@ -498,7 +533,9 @@ class OrderedAttackSuite:
         finding = rule.evaluate(enriched)
         det_latency_ms = round((time.time() - t_det_start) * 1000, 2)
         assert finding is not None and finding.rule_id == "AEGIS-DET-007"
-        logger.info(f"  [STAGE 2: DETECTION] Matched {finding.rule_id} ({finding.title}) in {det_latency_ms}ms")
+        logger.info(
+            f"  [STAGE 2: DETECTION] Matched {finding.rule_id} ({finding.title}) in {det_latency_ms}ms"
+        )
 
         blast = self.graph.calculate_blast_radius(bucket_arn)
         risk = self.risk_engine.evaluate(
@@ -513,7 +550,9 @@ class OrderedAttackSuite:
                 anomaly_score=0.92,
             )
         )
-        logger.info(f"  [STAGE 3: RISK] Evaluated Score: {risk.risk_score}/100 ({risk.risk_level.value})")
+        logger.info(
+            f"  [STAGE 3: RISK] Evaluated Score: {risk.risk_score}/100 ({risk.risk_level.value})"
+        )
 
         t_cont_start = time.time()
         logger.info("  [STAGE 4: CONTAINMENT] Restoring 4-point Public Access Block on AWS S3...")
@@ -527,7 +566,9 @@ class OrderedAttackSuite:
                     "RestrictPublicBuckets": True,
                 },
             )
-            logger.info("  [AWS CONTAINMENT SUCCESS] S3 Public Access Block restored to 100% blocked state.")
+            logger.info(
+                "  [AWS CONTAINMENT SUCCESS] S3 Public Access Block restored to 100% blocked state."
+            )
         except ClientError as e:
             logger.warning(f"  Could not restore live S3 block: {e}")
 
@@ -551,7 +592,10 @@ class OrderedAttackSuite:
             "containment_latency_ms": cont_latency_ms,
             "total_latency_ms": total_latency_ms,
         }
-        self._record_in_aws(record, {"finding": finding.model_dump(mode="json"), "risk": risk.model_dump(mode="json")})
+        self._record_in_aws(
+            record,
+            {"finding": finding.model_dump(mode="json"), "risk": risk.model_dump(mode="json")},
+        )
         return record
 
     def run_scenario_05(self) -> dict[str, Any]:
@@ -562,7 +606,9 @@ class OrderedAttackSuite:
         sg_id = None
 
         try:
-            sgs = self.ec2.describe_security_groups(Filters=[{"Name": "group-name", "Values": [TARGET_SG_NAME]}])
+            sgs = self.ec2.describe_security_groups(
+                Filters=[{"Name": "group-name", "Values": [TARGET_SG_NAME]}]
+            )
             if sgs["SecurityGroups"]:
                 sg_id = sgs["SecurityGroups"][0]["GroupId"]
         except Exception:
@@ -574,7 +620,9 @@ class OrderedAttackSuite:
             {"Environment": "aegis-security-lab", "Project": "aegis"},
         )
 
-        logger.info(f"  [STAGE 1: ATTACK] Injecting unrestricted ingress 0.0.0.0/0 port 22 into {sg_id} on AWS...")
+        logger.info(
+            f"  [STAGE 1: ATTACK] Injecting unrestricted ingress 0.0.0.0/0 port 22 into {sg_id} on AWS..."
+        )
         rule_added = False
         try:
             self.ec2.authorize_security_group_ingress(
@@ -631,7 +679,9 @@ class OrderedAttackSuite:
         finding = rule.evaluate(enriched)
         det_latency_ms = round((time.time() - t_det_start) * 1000, 2)
         assert finding is not None and finding.rule_id == "AEGIS-DET-005"
-        logger.info(f"  [STAGE 2: DETECTION] Matched {finding.rule_id} ({finding.title}) in {det_latency_ms}ms")
+        logger.info(
+            f"  [STAGE 2: DETECTION] Matched {finding.rule_id} ({finding.title}) in {det_latency_ms}ms"
+        )
 
         blast = self.graph.calculate_blast_radius(sg_arn)
         risk = self.risk_engine.evaluate(
@@ -646,7 +696,9 @@ class OrderedAttackSuite:
                 anomaly_score=0.9,
             )
         )
-        logger.info(f"  [STAGE 3: RISK] Evaluated Score: {risk.risk_score}/100 ({risk.risk_level.value})")
+        logger.info(
+            f"  [STAGE 3: RISK] Evaluated Score: {risk.risk_score}/100 ({risk.risk_level.value})"
+        )
 
         t_cont_start = time.time()
         logger.info("  [STAGE 4: CONTAINMENT] Revoking unrestricted 0.0.0.0/0 rule on AWS EC2...")
@@ -686,7 +738,10 @@ class OrderedAttackSuite:
             "containment_latency_ms": cont_latency_ms,
             "total_latency_ms": total_latency_ms,
         }
-        self._record_in_aws(record, {"finding": finding.model_dump(mode="json"), "risk": risk.model_dump(mode="json")})
+        self._record_in_aws(
+            record,
+            {"finding": finding.model_dump(mode="json"), "risk": risk.model_dump(mode="json")},
+        )
         return record
 
     def run_scenario_06(self) -> dict[str, Any]:
@@ -728,7 +783,9 @@ class OrderedAttackSuite:
         finding = rule.evaluate(enriched)
         det_latency_ms = round((time.time() - t_det_start) * 1000, 2)
         assert finding is not None and finding.rule_id == "AEGIS-DET-002"
-        logger.info(f"  [STAGE 2: DETECTION] Matched {finding.rule_id} ({finding.title}) in {det_latency_ms}ms")
+        logger.info(
+            f"  [STAGE 2: DETECTION] Matched {finding.rule_id} ({finding.title}) in {det_latency_ms}ms"
+        )
 
         blast = self.graph.calculate_blast_radius(user_arn)
         risk = self.risk_engine.evaluate(
@@ -742,7 +799,9 @@ class OrderedAttackSuite:
                 anomaly_score=0.88,
             )
         )
-        logger.info(f"  [STAGE 3: RISK] Evaluated Score: {risk.risk_score}/100 ({risk.risk_level.value})")
+        logger.info(
+            f"  [STAGE 3: RISK] Evaluated Score: {risk.risk_score}/100 ({risk.risk_level.value})"
+        )
 
         t_cont_start = time.time()
         rem_req = RemediationRequest(
@@ -776,7 +835,10 @@ class OrderedAttackSuite:
             "containment_latency_ms": cont_latency_ms,
             "total_latency_ms": total_latency_ms,
         }
-        self._record_in_aws(record, {"finding": finding.model_dump(mode="json"), "risk": risk.model_dump(mode="json")})
+        self._record_in_aws(
+            record,
+            {"finding": finding.model_dump(mode="json"), "risk": risk.model_dump(mode="json")},
+        )
         return record
 
     def run_scenario_07(self) -> dict[str, Any]:
@@ -819,7 +881,9 @@ class OrderedAttackSuite:
         finding = rule.evaluate(enriched)
         det_latency_ms = round((time.time() - t_det_start) * 1000, 2)
         assert finding is not None and finding.rule_id == "AEGIS-DET-009"
-        logger.info(f"  [STAGE 2: DETECTION] Matched {finding.rule_id} ({finding.title}) in {det_latency_ms}ms")
+        logger.info(
+            f"  [STAGE 2: DETECTION] Matched {finding.rule_id} ({finding.title}) in {det_latency_ms}ms"
+        )
 
         blast = self.graph.calculate_blast_radius(TARGET_ROLE_ARN)
         risk = self.risk_engine.evaluate(
@@ -833,7 +897,9 @@ class OrderedAttackSuite:
                 anomaly_score=0.98,
             )
         )
-        logger.info(f"  [STAGE 3: RISK] Evaluated Score: {risk.risk_score}/100 ({risk.risk_level.value})")
+        logger.info(
+            f"  [STAGE 3: RISK] Evaluated Score: {risk.risk_score}/100 ({risk.risk_level.value})"
+        )
 
         t_cont_start = time.time()
         rem_req = RemediationRequest(
@@ -848,7 +914,9 @@ class OrderedAttackSuite:
         rem_result = self.orchestrator.execute(rem_req)
         assert rem_result.status == RemediationStatus.VERIFIED
         cont_latency_ms = round((time.time() - t_cont_start) * 1000, 2)
-        logger.info(f"  [STAGE 4: CONTAINMENT] Invalidated active sessions across account in {cont_latency_ms}ms")
+        logger.info(
+            f"  [STAGE 4: CONTAINMENT] Invalidated active sessions across account in {cont_latency_ms}ms"
+        )
 
         self.orchestrator.iam.rollback(rem_req, rem_result.pre_state)
         logger.info("  [STAGE 5: CLEANUP] Cleanup verified.")
@@ -866,7 +934,10 @@ class OrderedAttackSuite:
             "containment_latency_ms": cont_latency_ms,
             "total_latency_ms": total_latency_ms,
         }
-        self._record_in_aws(record, {"finding": finding.model_dump(mode="json"), "risk": risk.model_dump(mode="json")})
+        self._record_in_aws(
+            record,
+            {"finding": finding.model_dump(mode="json"), "risk": risk.model_dump(mode="json")},
+        )
         return record
 
     def run_scenario_08(self) -> dict[str, Any]:
@@ -908,7 +979,9 @@ class OrderedAttackSuite:
         finding = rule.evaluate(enriched)
         det_latency_ms = round((time.time() - t_det_start) * 1000, 2)
         assert finding is not None and finding.rule_id == "AEGIS-DET-006"
-        logger.info(f"  [STAGE 2: DETECTION] Matched {finding.rule_id} ({finding.title}) in {det_latency_ms}ms")
+        logger.info(
+            f"  [STAGE 2: DETECTION] Matched {finding.rule_id} ({finding.title}) in {det_latency_ms}ms"
+        )
 
         blast = self.graph.calculate_blast_radius(trail_arn)
         risk = self.risk_engine.evaluate(
@@ -922,7 +995,9 @@ class OrderedAttackSuite:
                 anomaly_score=0.99,
             )
         )
-        logger.info(f"  [STAGE 3: RISK] Evaluated Score: {risk.risk_score}/100 ({risk.risk_level.value})")
+        logger.info(
+            f"  [STAGE 3: RISK] Evaluated Score: {risk.risk_score}/100 ({risk.risk_level.value})"
+        )
 
         t_cont_start = time.time()
         rem_req = RemediationRequest(
@@ -955,7 +1030,10 @@ class OrderedAttackSuite:
             "containment_latency_ms": cont_latency_ms,
             "total_latency_ms": total_latency_ms,
         }
-        self._record_in_aws(record, {"finding": finding.model_dump(mode="json"), "risk": risk.model_dump(mode="json")})
+        self._record_in_aws(
+            record,
+            {"finding": finding.model_dump(mode="json"), "risk": risk.model_dump(mode="json")},
+        )
         return record
 
     def run_all_in_order(self) -> list[dict[str, Any]]:
@@ -990,4 +1068,6 @@ if __name__ == "__main__":
     print("=" * 80)
     print(f"Total Scenarios: {len(results)} | Passed: {sum(1 for r in results if r['passed'])}")
     for r in results:
-        print(f"  [{r['scenario_id']}] {r['title']} -> {r['containment_action']} (Risk: {r['risk_score']}/100, Total Latency: {r['total_latency_ms']}ms)")
+        print(
+            f"  [{r['scenario_id']}] {r['title']} -> {r['containment_action']} (Risk: {r['risk_score']}/100, Total Latency: {r['total_latency_ms']}ms)"
+        )

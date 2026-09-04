@@ -60,7 +60,8 @@ class NeptuneAdapter:
         try:
             with urllib.request.urlopen(req, timeout=10) as response:  # noqa: S310
                 body = response.read().decode("utf-8")
-                return json.loads(body)
+                parsed = json.loads(body)
+                return parsed if isinstance(parsed, dict) else {}
         except urllib.error.URLError as e:
             logger.warning(
                 f"Neptune cluster query failed ({e}). Reverting to in-memory graph simulation."
