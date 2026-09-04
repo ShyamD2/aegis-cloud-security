@@ -49,9 +49,7 @@ WHERE incident_id = '{safe_incident_id}'
 ORDER BY timestamp ASC;"""  # noqa: S608
 
 
-def query_principal_forensic_history(
-    database: str, table: str, principal_pattern: str
-) -> str:
+def query_principal_forensic_history(database: str, table: str, principal_pattern: str) -> str:
     """SQL query discovering all incidents and forensic records involving a compromised principal."""
     safe_pattern = principal_pattern.replace("'", "''")
     return f"""SELECT
