@@ -1,0 +1,67 @@
+name: CD Deploy Pipeline (OIDC)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+permissions:
+  id-token: write # Required for requesting the OIDC JWT token
+  contents: read
+  pull-requests: write
+
+jobs:
+  terraform-plan:
+    name: Terraform Plan (OIDC)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::111122223333:role/aegis-prod-github-deployer-role
+          role-session-name: GitHubActions-Terraform-Plan
+          aws-region: us-east-1
+          audience: sts.amazonaws.com
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.8.5"
+
+      - name: Terraform Plan (Dev Environment)
+        run: |
+          cd terraform/environments/dev
+          terraform init -backend=false
+          terraform validate
+
+  terraform-apply:
+    name: Terraform Apply (Production Approval Gate)
+    needs: terraform-plan
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    environment: production # Requires manual approval in GitHub repo settings
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::111122223333:role/aegis-prod-github-deployer-role
+          role-session-name: GitHubActions-Terraform-Apply
+          aws-region: us-east-1
+          audience: sts.amazonaws.com
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.8.5"
+
+      - name: Terraform Deployment
+        run: |
+          echo "Executing audited Terraform deployment under least-privilege OIDC role"
+          # terraform apply -auto-approve

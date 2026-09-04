@@ -316,7 +316,8 @@ def test_least_privilege_audit_no_administrator_access() -> None:
             if file.endswith(".tf"):
                 filepath = os.path.join(root, file)
                 with open(filepath, encoding="utf-8") as f:
-                    content = f.read()
+                    lines = [line.strip() for line in f if not line.strip().startswith(("#", "//"))]
+                    content = "\n".join(lines)
                     for forbidden in forbidden_strings:
                         # Allow SCP Deny * if accompanied by Deny
                         if forbidden in content and "Effect" not in content:
