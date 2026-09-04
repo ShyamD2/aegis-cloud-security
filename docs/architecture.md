@@ -105,9 +105,9 @@ graph TD
     LAB -->|Forward CloudTrail & Flow Logs| LOG
 
     LOG -->|Kinesis Streaming Sync| SEC
-    SEC -->|Cross-Account AssumeRole (Least Privilege)| PROD
-    SEC -->|Cross-Account AssumeRole (Least Privilege)| DEV
-    SEC -->|Cross-Account AssumeRole (Least Privilege)| LAB
+    SEC -->|"Cross-Account AssumeRole (Least Privilege)"| PROD
+    SEC -->|"Cross-Account AssumeRole (Least Privilege)"| DEV
+    SEC -->|"Cross-Account AssumeRole (Least Privilege)"| LAB
 ```
 
 ---

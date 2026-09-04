@@ -50,7 +50,7 @@ flowchart TB
     AEGISCore --> RulesEngine & MLAnomaly
     RulesEngine & MLAnomaly --> NeptuneGraph
     NeptuneGraph --> RiskEngine
-    RiskEngine -->|Risk Score >= 50.0| StepFunctions
+    RiskEngine -->|"Risk Score >= 50.0"| StepFunctions
     StepFunctions -->|Scoped Least-Privilege Containment| Workloads
     StepFunctions -->|Cryptographic Evidence Manifest| S3Vault
     S3Vault -.-> Athena
