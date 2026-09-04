@@ -1,0 +1,11 @@
+aws_region          = "us-east-1"
+project_name        = "aegis"
+environment         = "bootstrap"
+state_bucket_prefix = "aegis-tf-state"
+
+tags = {
+  Project                = "AEGIS"
+  ManagedBy              = "Terraform"
+  SecurityClassification = "Confidential"
+  Repository             = "https://github.com/aegis-security/project-aegis"
+}
