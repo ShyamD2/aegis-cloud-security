@@ -1,0 +1,8 @@
+# Project AEGIS - Security Lab Deployment Variables Example
+# Copy this file to terraform.tfvars and customize for your AWS deployment.
+
+aws_region                 = "us-east-1"
+project_name               = "aegis"
+environment                = "security-lab"
+deployment_mode            = "DEMO"  # "DEMO" (<$0.50/day serverless) or "FULL" (includes Neptune Serverless)
+scheduler_interval_minutes = 15      # Run purple-team scenario every 15 minutes
