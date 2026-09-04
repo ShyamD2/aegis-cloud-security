@@ -1,5 +1,6 @@
 # 1. Amazon Kinesis Data Stream (On-Demand Mode)
 resource "aws_kinesis_stream" "security_events" {
+  count            = var.enable_kinesis ? 1 : 0
   name             = "${var.project_name}-security-events-stream"
   retention_period = var.retention_hours
 
@@ -26,7 +27,6 @@ resource "aws_sqs_queue" "pipeline_dlq" {
 resource "aws_cloudwatch_log_group" "pipeline_logs" {
   name              = "/aws/aegis/pipeline-processor"
   retention_in_days = 30
-  kms_key_id        = var.kms_key_arn
 
   tags = var.tags
 }
@@ -57,36 +57,40 @@ resource "aws_iam_role_policy" "pipeline_lambda_policy" {
 
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
-      {
-        Sid    = "KinesisStreamRead"
-        Effect = "Allow"
-        Action = [
-          "kinesis:GetRecords",
-          "kinesis:GetShardIterator",
-          "kinesis:DescribeStream",
-          "kinesis:ListShards"
-        ]
-        Resource = aws_kinesis_stream.security_events.arn
-      },
-      {
-        Sid    = "DLQSend"
-        Effect = "Allow"
-        Action = [
-          "sqs:SendMessage",
-          "sqs:GetQueueAttributes"
-        ]
-        Resource = aws_sqs_queue.pipeline_dlq.arn
-      },
-      {
-        Sid    = "Logging"
-        Effect = "Allow"
-        Action = [
-          "logs:CreateLogStream",
-          "logs:PutLogEvents"
-        ]
-        Resource = "${aws_cloudwatch_log_group.pipeline_logs.arn}:*"
-      }
-    ]
+    Statement = concat(
+      var.enable_kinesis ? [
+        {
+          Sid    = "KinesisStreamRead"
+          Effect = "Allow"
+          Action = [
+            "kinesis:GetRecords",
+            "kinesis:GetShardIterator",
+            "kinesis:DescribeStream",
+            "kinesis:ListShards"
+          ]
+          Resource = aws_kinesis_stream.security_events[0].arn
+        }
+      ] : [],
+      [
+        {
+          Sid    = "DLQSend"
+          Effect = "Allow"
+          Action = [
+            "sqs:SendMessage",
+            "sqs:GetQueueAttributes"
+          ]
+          Resource = aws_sqs_queue.pipeline_dlq.arn
+        },
+        {
+          Sid    = "Logging"
+          Effect = "Allow"
+          Action = [
+            "logs:CreateLogStream",
+            "logs:PutLogEvents"
+          ]
+          Resource = "${aws_cloudwatch_log_group.pipeline_logs.arn}:*"
+        }
+      ]
+    )
   })
 }

@@ -21,6 +21,12 @@ variable "kms_key_arn" {
   description = "KMS CMK for stream and queue encryption"
 }
 
+variable "enable_kinesis" {
+  type        = bool
+  description = "Enable Amazon Kinesis stream (requires active Kinesis subscription)"
+  default     = true
+}
+
 variable "tags" {
   type        = map(string)
   description = "Resource tags"

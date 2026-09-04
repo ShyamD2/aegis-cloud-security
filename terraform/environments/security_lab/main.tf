@@ -63,6 +63,7 @@ module "pipeline" {
   project_name    = var.project_name
   kms_key_arn     = module.kms.pipeline_key_arn
   retention_hours = 24
+  enable_kinesis  = false
   tags            = local.common_tags
 }
 
@@ -71,8 +72,8 @@ module "native_detection" {
   source = "../../modules/native_detection"
 
   project_name        = var.project_name
-  enable_guardduty    = true
-  enable_security_hub = true
+  enable_guardduty    = false
+  enable_security_hub = false
   tags                = local.common_tags
 }
 
@@ -104,8 +105,9 @@ module "security_lab" {
 module "war_room" {
   source = "../../modules/war_room"
 
-  project_name = var.project_name
-  environment  = var.environment
-  kms_key_arn  = module.kms.pipeline_key_arn
-  tags         = local.common_tags
+  project_name      = var.project_name
+  environment       = var.environment
+  kms_key_arn       = module.kms.pipeline_key_arn
+  enable_cloudfront = false
+  tags              = local.common_tags
 }

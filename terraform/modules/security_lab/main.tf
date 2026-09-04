@@ -78,7 +78,10 @@ resource "aws_iam_policy" "lab_scoped_policy" {
           "cloudwatch:PutMetricData",
           "logs:CreateLogGroup",
           "logs:CreateLogStream",
-          "logs:PutLogEvents"
+          "logs:PutLogEvents",
+          "states:StartExecution",
+          "states:DescribeExecution",
+          "states:StopExecution"
         ]
         Resource = "*"
       },
@@ -115,7 +118,6 @@ resource "aws_iam_role_policy_attachment" "lab_orchestrator" {
 resource "aws_cloudwatch_log_group" "lab_runner_logs" {
   name              = "/aws/aegis/security-lab-runner-${var.environment}"
   retention_in_days = 30
-  kms_key_id        = var.kms_key_arn
 
   tags = var.tags
 }
@@ -133,9 +135,17 @@ resource "aws_sfn_state_machine" "purple_team_runner" {
         Type = "Choice"
         Choices = [
           {
-            Variable     = "$.status"
-            StringEquals = "ABORTED"
-            Next         = "SafetyHaltState"
+            And = [
+              {
+                Variable  = "$.status"
+                IsPresent = true
+              },
+              {
+                Variable     = "$.status"
+                StringEquals = "ABORTED"
+              }
+            ]
+            Next = "SafetyHaltState"
           }
         ]
         Default = "VerifyResourceBoundary"
@@ -198,12 +208,6 @@ resource "aws_sfn_state_machine" "purple_team_runner" {
     }
   })
 
-  logging_configuration {
-    level                  = "ALL"
-    include_execution_data = true
-    log_destination        = "${aws_cloudwatch_log_group.lab_runner_logs.arn}:*"
-  }
-
   tags = merge(var.tags, {
     Name = "${var.project_name}-purple-team-runner"
   })
@@ -229,6 +233,7 @@ resource "aws_scheduler_schedule" "continuous_lab_schedule" {
       source      = "aegis.security_lab.scheduler"
       environment = "aegis-security-lab"
       mode        = "AUTONOMOUS_CONTINUOUS"
+      status      = "INITIATED"
     })
 
     retry_policy {

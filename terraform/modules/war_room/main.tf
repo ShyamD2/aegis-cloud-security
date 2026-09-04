@@ -66,7 +66,7 @@ resource "aws_apigatewayv2_authorizer" "cognito" {
 
 # 3. Static Hosting S3 Bucket
 resource "aws_s3_bucket" "dashboard_assets" {
-  bucket = "${var.project_name}-war-room-assets-${var.environment}-8877"
+  bucket_prefix = "${var.project_name}-war-assets-${var.environment}-"
 
   tags = merge(var.tags, {
     Name = "${var.project_name}-war-room-assets"
@@ -95,6 +95,7 @@ resource "aws_s3_bucket_public_access_block" "dashboard_assets" {
 
 # CloudFront Origin Access Control
 resource "aws_cloudfront_origin_access_control" "dashboard" {
+  count                             = var.enable_cloudfront ? 1 : 0
   name                              = "${var.project_name}-oac-${var.environment}"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
@@ -103,6 +104,7 @@ resource "aws_cloudfront_origin_access_control" "dashboard" {
 
 # CloudFront CDN Distribution
 resource "aws_cloudfront_distribution" "dashboard" {
+  count               = var.enable_cloudfront ? 1 : 0
   enabled             = true
   is_ipv6_enabled     = true
   default_root_object = "index.html"
@@ -110,7 +112,7 @@ resource "aws_cloudfront_distribution" "dashboard" {
   origin {
     domain_name              = aws_s3_bucket.dashboard_assets.bucket_regional_domain_name
     origin_id                = "S3Origin"
-    origin_access_control_id = aws_cloudfront_origin_access_control.dashboard.id
+    origin_access_control_id = aws_cloudfront_origin_access_control.dashboard[0].id
   }
 
   default_cache_behavior {

@@ -15,6 +15,12 @@ variable "kms_key_arn" {
   description = "KMS Customer Managed Key ARN for dashboard bucket encryption"
 }
 
+variable "enable_cloudfront" {
+  type        = bool
+  description = "Whether to create CloudFront CDN distribution (requires verified AWS account)"
+  default     = false
+}
+
 variable "tags" {
   type        = map(string)
   description = "Resource tags applied to War Room infrastructure"

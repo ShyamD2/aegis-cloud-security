@@ -15,5 +15,5 @@ output "api_endpoint" {
 
 output "cloudfront_domain_name" {
   description = "CloudFront distribution domain name"
-  value       = aws_cloudfront_distribution.dashboard.domain_name
+  value       = var.enable_cloudfront ? aws_cloudfront_distribution.dashboard[0].domain_name : null
 }

@@ -1,11 +1,11 @@
 output "kinesis_stream_name" {
   description = "Name of the Kinesis data stream"
-  value       = aws_kinesis_stream.security_events.name
+  value       = var.enable_kinesis ? aws_kinesis_stream.security_events[0].name : null
 }
 
 output "kinesis_stream_arn" {
   description = "ARN of the Kinesis data stream"
-  value       = aws_kinesis_stream.security_events.arn
+  value       = var.enable_kinesis ? aws_kinesis_stream.security_events[0].arn : null
 }
 
 output "dlq_url" {
