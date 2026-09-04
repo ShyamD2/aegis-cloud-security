@@ -1,12 +1,12 @@
 # PROJECT AEGIS
 ### Autonomous AWS Cloud Defense, Attack-Path Analysis & Self-Healing Security Fabric
 
-[![CI Pipeline](https://github.com/aegis-security/project-aegis/actions/workflows/ci.yml/badge.svg)](https://github.com/aegis-security/project-aegis/actions/workflows/ci.yml)
-[![Security Scan](https://github.com/aegis-security/project-aegis/actions/workflows/security.yml/badge.svg)](https://github.com/aegis-security/project-aegis/actions/workflows/security.yml)
+[![CI Pipeline](https://github.com/ShyamD2/aegis-cloud-security/actions/workflows/ci.yml/badge.svg)](https://github.com/ShyamD2/aegis-cloud-security/actions/workflows/ci.yml)
+[![Security Scan](https://github.com/ShyamD2/aegis-cloud-security/actions/workflows/security.yml/badge.svg)](https://github.com/ShyamD2/aegis-cloud-security/actions/workflows/security.yml)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.12%2B%20%7C%203.13-brightgreen.svg)](https://www.python.org/)
 [![Terraform](https://img.shields.io/badge/Terraform-1.5%2B-purple.svg)](https://www.terraform.io/)
-[![Tests](https://img.shields.io/badge/Tests-98%2F98%20Passing-success.svg)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-110%2F110%20Passing-success.svg)](tests/)
 [![Latency](https://img.shields.io/badge/Internal%20p50-0.285ms-blueviolet.svg)](docs/performance-report.md)
 [![Availability](https://img.shields.io/badge/Availability-99.99%25-green.svg)](docs/reliability-report.md)
 
@@ -162,8 +162,8 @@ project-aegis/
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/aegis-security/project-aegis.git
-cd project-aegis
+git clone https://github.com/ShyamD2/aegis-cloud-security.git
+cd aegis-cloud-security
 
 # 2. Activate virtual environment
 python -m venv .venv
@@ -176,7 +176,7 @@ pip install -r requirements-dev.txt
 ruff check .
 ruff format --check .
 
-# 5. Execute complete 98-test verification suite
+# 5. Execute complete 110-test verification suite
 pytest -v
 
 # 6. Execute Purple-Team Attack Lab across all 8 scenarios

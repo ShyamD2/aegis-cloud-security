@@ -7,5 +7,5 @@ tags = {
   Project                = "AEGIS"
   ManagedBy              = "Terraform"
   SecurityClassification = "Confidential"
-  Repository             = "https://github.com/aegis-security/project-aegis"
+  Repository             = "https://github.com/ShyamD2/aegis-cloud-security"
 }
