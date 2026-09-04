@@ -21,6 +21,7 @@ from services.remediation.remediators.base import BaseRemediator
 from services.remediation.remediators.ec2 import EC2Remediator
 from services.remediation.remediators.iam import IAMRemediator
 from services.remediation.remediators.s3 import S3Remediator
+from services.resilience.circuit_breaker import CircuitBreaker
 
 logger = logging.getLogger("aegis.remediation.orchestrator")
 
@@ -28,7 +29,7 @@ logger = logging.getLogger("aegis.remediation.orchestrator")
 class RemediationOrchestrator:
     """
     Central coordinator orchestrating specialized remediators with idempotency,
-    verification, and rollback controls.
+    verification, circuit-breaker fault tolerance, and rollback controls.
     """
 
     def __init__(
@@ -38,12 +39,16 @@ class RemediationOrchestrator:
         ec2_remediator: EC2Remediator | None = None,
         s3_remediator: S3Remediator | None = None,
         account_remediator: AccountQuarantineRemediator | None = None,
+        circuit_breaker: CircuitBreaker | None = None,
     ) -> None:
         self.store = idempotency_store or IdempotencyStore()
         self.iam = iam_remediator or IAMRemediator()
         self.ec2 = ec2_remediator or EC2Remediator()
         self.s3 = s3_remediator or S3Remediator()
         self.account = account_remediator or AccountQuarantineRemediator()
+        self.circuit_breaker = circuit_breaker or CircuitBreaker(
+            name="remediation-orchestrator-breaker"
+        )
 
     def _get_remediator(self, action: RemediationAction) -> BaseRemediator:
         if action in (
@@ -63,14 +68,27 @@ class RemediationOrchestrator:
     def execute(self, request: RemediationRequest) -> RemediationResult:
         """
         Main execution pipeline:
-        1. Idempotency Lock
-        2. Risk Score Gate
-        3. Dispatch to Specialized Remediator
-        4. Post-Execution Verification
-        5. Rollback on Verification Failure
-        6. Record Audit State
+        1. Circuit Breaker Gate
+        2. Idempotency Lock
+        3. Risk Score Gate
+        4. Dispatch to Specialized Remediator
+        5. Post-Execution Verification
+        6. Rollback on Verification Failure
+        7. Record Audit State
         """
-        # Step 1: Idempotency Lock
+        # Step 1: Circuit Breaker Gate
+        if not self.circuit_breaker.can_execute():
+            return RemediationResult(
+                remediation_id=request.remediation_id,
+                action=request.action,
+                target_resource_id=request.target_resource_id,
+                status=RemediationStatus.FAILED,
+                verified=False,
+                verification_details=f"Circuit breaker '{self.circuit_breaker.name}' is OPEN. Automated remediation halted to prevent cascading failure.",
+                error_message="CircuitBreakerOpenException: Containment halted by circuit breaker.",
+            )
+
+        # Step 2: Idempotency Lock
         lock_acquired = self.store.acquire_lock(request.idempotency_key, request.remediation_id)
         if not lock_acquired:
             return RemediationResult(
@@ -83,7 +101,7 @@ class RemediationOrchestrator:
                 error_message="Duplicate containment prevented by IdempotencyStore.",
             )
 
-        # Step 2: Risk Gating
+        # Step 3: Risk Gating
         # Scores below 50.0 (LOW/MEDIUM) must not trigger active automated containment
         if request.risk_score < 50.0:
             result = RemediationResult(
@@ -97,12 +115,17 @@ class RemediationOrchestrator:
             self.store.record_completion(request.idempotency_key, result)
             return result
 
-        # Step 3: Dispatch to Specialized Remediator
+        # Step 4: Dispatch to Specialized Remediator
         try:
             remediator = self._get_remediator(request.action)
             result = remediator.remediate(request)
+            if result.status == RemediationStatus.VERIFIED:
+                self.circuit_breaker.record_success()
+            else:
+                self.circuit_breaker.record_failure()
         except Exception as e:
             logger.error(f"Remediator exception during {request.action}: {e}")
+            self.circuit_breaker.record_failure(e)
             result = RemediationResult(
                 remediation_id=request.remediation_id,
                 action=request.action,
@@ -115,7 +138,7 @@ class RemediationOrchestrator:
             self.store.record_completion(request.idempotency_key, result)
             return result
 
-        # Step 4 & 5: Verification and Rollback if needed
+        # Step 5 & 6: Verification and Rollback if needed
         if not result.verified and result.pre_state:
             logger.warning(
                 f"Remediation {request.remediation_id} failed verification; initiating rollback."
