@@ -1,0 +1,4 @@
+aws_region          = "us-east-1"
+project_name        = "aegis"
+enable_guardduty    = true
+enable_security_hub = true
