@@ -8,6 +8,9 @@
 **Automated Test Suite:** 110 / 110 Passed (100% Pass Rate in 1.21s)  
 **Live Purple-Team Attack Suite:** 8 / 8 Scenarios Successfully Detected & Mitigated  
 
+> 📖 **Official Project Report:** See the interactive [Official AEGIS Project Report](PROJECT_REPORT.md) or download [AEGIS_Project_Report.pdf](AEGIS_Project_Report.pdf).  
+> 🏗️ **Infrastructure as Code:** 100% provisioned via [HashiCorp Terraform](../terraform/environments/security_lab).
+
 ---
 
 ## 1. Executive Summary
