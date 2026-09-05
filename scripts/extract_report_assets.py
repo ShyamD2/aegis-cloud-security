@@ -1,21 +1,36 @@
+import io
 import os
 import shutil
 
 import fitz
+from PIL import Image
 
 
 def extract_assets():
-    pdf_path = r"e:\downloads\Shyam_Kumar_D_AEGIS_Project_Report_Dark.pdf"
-    if not os.path.exists(pdf_path):
-        pdf_path = r"e:\downloads\Shyam_Kumar_D_AEGIS_Project_Report_Dark_compressed.pdf"
+    # Prefer the latest uploaded upgraded PDF
+    candidates = [
+        r"e:\downloads\Shyam_Kumar_D_AEGIS_Project_Report_Dark (2).pdf",
+        r"e:\downloads\Shyam_Kumar_D_AEGIS_Project_Report_Dark (1).pdf",
+        r"e:\downloads\Shyam_Kumar_D_AEGIS_Project_Report_Dark.pdf",
+    ]
+    pdf_path = None
+    for candidate in candidates:
+        if os.path.exists(candidate):
+            pdf_path = candidate
+            break
+
+    if not pdf_path:
+        raise FileNotFoundError("Could not find upgraded project report PDF.")
+
+    print(f"Loading upgraded PDF from: {pdf_path}")
 
     out_dir = os.path.join("docs", "assets", "screenshots")
     os.makedirs(out_dir, exist_ok=True)
 
-    # Also copy the PDF into docs/
+    # Replace docs/AEGIS_Project_Report.pdf with upgraded PDF
     pdf_dest = os.path.join("docs", "AEGIS_Project_Report.pdf")
     shutil.copyfile(pdf_path, pdf_dest)
-    print(f"Copied report PDF to {pdf_dest}")
+    print(f"Replaced report PDF at: {pdf_dest} ({os.path.getsize(pdf_dest)} bytes)")
 
     doc = fitz.open(pdf_path)
     mapping = [
@@ -44,14 +59,16 @@ def extract_assets():
             xref = images[0][0]
             base_img = doc.extract_image(xref)
             image_bytes = base_img["image"]
+
+            # Load into PIL to ensure clean conversion to high-resolution PNG
+            img = Image.open(io.BytesIO(image_bytes))
             out_path = os.path.join(out_dir, fname)
-            with open(out_path, "wb") as f:
-                f.write(image_bytes)
+            img.save(out_path, format="PNG", optimize=True)
             print(
-                f"Extracted {fname} ({len(image_bytes)} bytes, {base_img['width']}x{base_img['height']})"
+                f"Successfully replaced {fname}: {img.width}x{img.height} PNG ({os.path.getsize(out_path)} bytes)"
             )
         else:
-            print(f"No image on page {page_num}")
+            print(f"Warning: No image found on page {page_num}")
 
 
 if __name__ == "__main__":
