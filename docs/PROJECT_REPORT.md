@@ -31,7 +31,7 @@ Autonomous Multi-Account Cloud Detection, Active SOAR Containment & Digital Fore
 What sets AEGIS apart from a typical detection demo is the depth of the supporting engineering:
 - **Distributed Idempotency:** Remediation actions are protected by a DynamoDB-backed idempotency table so the same containment action can never fire twice or race itself under concurrent or retried triggers.
 - **Sub-Millisecond Detection:** Every finding and action is evaluated with internal engine latencies in the sub-millisecond range ($0.23\text{ ms} - 0.71\text{ ms}$).
-- **SEC Rule 17a-4 Forensics:** Forensic evidence dossiers are cryptographically sealed into an Amazon S3 bucket under **Object Lock in Governance mode with a 90-day retention period**, ensuring evidence cannot be overwritten or deleted even by the account root credentials.
+- **SEC Rule 17a-4-Oriented Immutable Forensics:** Forensic evidence dossiers are cryptographically sealed into an Amazon S3 bucket under **Object Lock (Governance mode for lab tear-down flexibility; Compliance mode for production WORM enforcement with a 90-day retention period)**, ensuring evidence cannot be altered or overwritten.
 - **Dedicated KMS CMK Isolation:** All logs, forensic evidence, and pipeline events are encrypted under separate customer-managed keys (CMKs), preventing lateral blast radius even under pipeline compromise.
 - **SOC War Room API:** The platform exposes an authenticated REST API (Amazon API Gateway HTTP API + Amazon Cognito JWT authorizer) for real-time metrics, findings, and containment reviews.
 - **Blast-Radius Isolation via IaC:** Automated remediation enforces strict tag scoping (`Environment = aegis-security-lab`, `ManagedBy = Terraform`, `LabTarget = true`), guaranteeing that autonomous containment logic can never touch production workloads.
@@ -111,7 +111,7 @@ flowchart TD
 | **SOAR Containment** | Step Functions Decision Tree | Automated remediation branches: session revocation, access-key deactivation, S3 public-access block, security-group revocation, quarantine boundary attachment | `terraform/modules/remediation` |
 | **Idempotency Control** | DynamoDB (`dedup_hash` + TTL) | Guarantees every remediation action executes exactly once — no duplicate or racing containment actions | `terraform/modules/remediation` |
 | **Attack & Metrics Log** | DynamoDB Executions Table | Every purple-team run permanently logged with detection latency, containment latency, and risk score | `terraform/modules/security_lab` |
-| **Digital Forensics** | S3 Object Lock (WORM, Governance, 90 days) | Tamper-proof evidence retention aligned with SEC Rule 17a-4 — cannot be deleted even by the root account | `terraform/modules/forensics_vault` |
+| **Digital Forensics** | S3 Object Lock (WORM, 90 days) | Tamper-proof evidence retention aligned with SEC Rule 17a-4 architecture (Governance mode for lab, Compliance mode for prod) | `terraform/modules/forensics_vault` |
 | **Encryption** | AWS KMS Customer-Managed Keys | Dedicated keys for central logs and forensic evidence, separate from the pipeline key | `terraform/modules/kms_foundation` |
 | **Resilience** | SQS + Dead-Letter Queue (SSE-KMS) | Captures any message that fails processing; 0 messages in the DLQ proves zero silent pipeline drops | `terraform/modules/pipeline` |
 | **Observability** | CloudWatch Log Groups | Centralized, continuously streaming logs across the pipeline processor and the security-lab runner | `terraform/modules/pipeline` |
@@ -203,7 +203,7 @@ The `aegis-lab-executions-security-lab` table permanently logs every purple-team
 ### Category 3 — Digital Forensics & WORM Compliance
 
 #### 3.7 — S3 Forensics Vault — WORM Object Lock
-The `aegis-forensics-vault-197550036081` bucket has **Object Lock: Enabled**, with **Default retention: Enabled**, mode set to **Governance**, and a **90-day default retention period**. This enforces write-once-read-many (WORM) storage aligned with **SEC Rule 17a-4**, preventing forensic evidence from being deleted or overwritten during the retention window, even by the account root user.
+The `aegis-forensics-vault-197550036081` bucket has **Object Lock: Enabled**, with **Default retention: Enabled**, mode set to **Governance** for the security lab environment (and **Compliance** mode for production deployments), with a **90-day default retention period**. This enforces write-once-read-many (WORM) storage aligned with **SEC Rule 17a-4**, preventing forensic evidence from being deleted or overwritten during the retention window.
 
 ![S3 Forensics Vault WORM Object Lock](assets/screenshots/07_s3_forensics_vault_worm_object_lock.png)
 

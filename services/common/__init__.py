@@ -9,6 +9,13 @@ from services.common.models import (
     NormalizedSecurityEvent,
     SecurityFinding,
 )
+from services.common.ocsf import (
+    OCSFAdapter,
+    OCSFCategory,
+    OCSFClass,
+    OCSFEvent,
+    OCSFSeverity,
+)
 
 __all__ = [
     "FindingSeverity",
@@ -19,4 +26,9 @@ __all__ = [
     "CloudTrailRecord",
     "HealthChecker",
     "HealthStatus",
+    "OCSFEvent",
+    "OCSFAdapter",
+    "OCSFClass",
+    "OCSFCategory",
+    "OCSFSeverity",
 ]

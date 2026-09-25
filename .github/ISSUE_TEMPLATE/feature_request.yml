@@ -1,0 +1,28 @@
+name: Feature Request
+description: Suggest a new feature, detection rule, or architectural enhancement.
+title: "[FEATURE]: "
+labels: ["enhancement", "discussion"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        We welcome proposals for new detection rules, OCSF schemas, AWS service adapters, or SOAR remediators!
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: Is your feature request related to a specific cloud security problem or threat vector?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like to see, including AWS services and workflow.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any alternative solutions or workarounds you've evaluated?

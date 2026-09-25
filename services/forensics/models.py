@@ -1,6 +1,7 @@
 """
 Project AEGIS - Digital Forensics & Immutable Evidence Models
-Defines evidence record schemas, cryptographic checksums, timeline stages, and evidence manifests.
+Defines evidence record schemas, cryptographic checksums, timeline stages,
+asymmetric KMS digital signature envelopes, and evidence manifests.
 """
 
 from __future__ import annotations
@@ -91,3 +92,31 @@ class EvidenceManifest(BaseModel):
     evidence_items: list[EvidenceRecord] = Field(description="List of captured evidence records")
     timeline: list[TimelineEvent] = Field(description="Synthesized chronological incident timeline")
     storage_vault_bucket: str = Field(description="S3 bucket housing the Object Lock evidence")
+    kms_key_id: str | None = Field(
+        default=None,
+        description="AWS KMS asymmetric key ARN or ID used for digital signature",
+    )
+    signature: str | None = Field(
+        default=None,
+        description="Base64-encoded asymmetric digital signature proving authenticity",
+    )
+    signing_algorithm: str = Field(
+        default="RSASSA_PSS_SHA_256",
+        description="Asymmetric signing algorithm",
+    )
+    signed_by_arn: str | None = Field(
+        default=None,
+        description="IAM identity or KMS alias that executed the signature",
+    )
+    object_lock_mode: str = Field(
+        default="COMPLIANCE",
+        description="S3 Object Lock retention mode (COMPLIANCE or GOVERNANCE)",
+    )
+    retention_until_date: datetime | None = Field(
+        default=None,
+        description="Explicit WORM retention expiration timestamp",
+    )
+    authenticity_verified: bool = Field(
+        default=False,
+        description="True if cryptographic signature and integrity were verified",
+    )

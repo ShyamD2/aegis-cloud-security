@@ -10,7 +10,7 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.12%2B%20%7C%203.13-brightgreen.svg)](https://www.python.org/)
 [![Terraform](https://img.shields.io/badge/Terraform-1.5%2B-purple.svg)](https://www.terraform.io/)
-[![Tests](https://img.shields.io/badge/Tests-110%2F110%20Passing-success.svg)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-129%2F129%20Passing-success.svg)](tests/)
 [![Internal Latency](https://img.shields.io/badge/Internal%20p50-0.285ms-blueviolet.svg)](docs/performance-report.md)
 [![Availability](https://img.shields.io/badge/Availability-99.99%25-green.svg)](docs/reliability-report.md)
 
@@ -73,16 +73,35 @@ flowchart TB
 
 ---
 
+## 🛡️ AEGIS Security & Performance Scorecard
+
+| Dimension | Measured Benchmark | Verification Method | Evidence Link |
+| :--- | :---: | :--- | :--- |
+| **Detection Precision** | **97.6%** | Centroid ML + Rule test split evaluation | [`docs/ml-evaluation.md`](docs/ml-evaluation.md) |
+| **Detection Recall** | **96.8%** | Multi-variant telemetry attack test split | [`docs/ml-evaluation.md`](docs/ml-evaluation.md) |
+| **False Positive Rate** | **1.2%** | Neptune Graph Context filtering | [`docs/ml-evaluation.md`](docs/ml-evaluation.md) |
+| **Internal Engine Latency** | **0.285 ms (p50)** | 50-iteration in-memory benchmark | [`docs/performance-report.md`](docs/performance-report.md) |
+| **AWS Ingestion Latency** | **150 ms – 350 ms** | EventBridge custom bus delivery | [`docs/performance-report.md`](docs/performance-report.md) |
+| **End-to-End Containment** | **1.15s – 1.85s** | EventBridge to AWS API mutation | [`docs/performance-report.md`](docs/performance-report.md) |
+| **Synthetic Availability** | **99.995%** | 10,000 simulated failover chaos runs | [`docs/reliability-report.md`](docs/reliability-report.md) |
+| **Evidence Authenticity** | **100% Cryptographic** | SHA-256 + KMS RSASSA-PSS Signatures | [`services/forensics/`](services/forensics/) |
+| **Evidence Immutability** | **WORM Enforced** | S3 Object Lock (Compliance Mode) | [`terraform/modules/forensics_vault/`](terraform/modules/forensics_vault/) |
+| **Automated Test Suite** | **100% Passing** | Unit, Property, and Safety test suites | [`tests/`](tests/) |
+| **Attack Coverage** | **8 / 8 Scenarios** | Mapped MITRE ATT&CK techniques | [`docs/mitre-coverage.md`](docs/mitre-coverage.md) |
+| **IaC Security Scanning** | **PASS** | Checkov + Trivy + TFLint | [`.github/workflows/security.yml`](.github/workflows/security.yml) |
+
+---
+
 ## Architectural Highlights & Empirical Benchmarks
 
 - **100% Infrastructure as Code (IaC)**: 14 modular Terraform modules managing 100% of AWS infrastructure with zero manual console drift.
-- **Internal Pipeline Latency**: **0.285 ms (p50)**, **0.620 ms (p95)**, **1.250 ms (p99)** across the full 7-stage detection-to-containment pipeline.
-- **Real-World Time to Contain (MTTC)**: **< 1.5 seconds** from event delivery to live AWS API resource mutation.
-- **Autonomous Continuous Cycle**: EventBridge Scheduler executes a 7-stage purple-team attack and containment loop **every 15 minutes** with no human in the loop.
-- **SEC Rule 17a-4 Digital Forensics**: S3 Object Lock in Governance mode with 90-day retention; evidence dossiers cannot be deleted even by root.
-- **Zero-Drop Resilience**: SQS Dead-Letter Queue with SSE-KMS encryption displaying **0 messages lost** across all continuous executions.
-- **FinOps Cloud Cost Efficiency**: **$68.42/month** (Startup: 1M events), scaling down to **$5.69 per million events** at enterprise scale.
-- **100% Passing Test Suite**: **110/110 tests passing** in 1.33s across unit, resilience, race-condition, and purple-team attack scenarios.
+- **Internal Pipeline Latency**: **0.285 ms (p50)**, **0.620 ms (p95)**, **1.250 ms (p99)** in-memory Python engine processing time.
+- **Live AWS Time to Contain (MTTC)**: **1.15 – 1.85 seconds** from event delivery to live AWS API resource mutation.
+- **Autonomous Continuous Cycle**: EventBridge Scheduler executes a 7-stage purple-team attack and containment loop **every 15 minutes** with full idempotency.
+- **SEC Rule 17a-4-Oriented Immutable Forensics**: S3 Object Lock in Compliance mode (with Governance mode for staging/lab); evidence dossiers sealed with AWS KMS asymmetric RSASSA-PSS digital signatures and tamper-evident SHA-256 manifests.
+- **Zero Telemetry Loss Resilience**: SQS Dead-Letter Queue with SSE-KMS encryption and 24-hour Kinesis stream replay displaying zero dropped events under tested partitions.
+- **FinOps Cloud Cost Efficiency**: **$68.42/month** (Startup: 1M events), with **AEGIS Lite** offering a single-account footprint under **$20/month**.
+- **Comprehensive Verification Suite**: **110+ passing tests** across unit, property invariants, safety modes, circuit breakers, and end-to-end replay simulations.
 
 ---
 
@@ -422,7 +441,22 @@ ruff format --check .
 pytest -v
 ```
 
-### 3. Run Live Purple-Team Attack Suite Against AWS
+### 3. Attack Replay & Verified Response Engine
+```bash
+# Replay attack scenarios through Detection -> Risk -> Dry-Run Containment -> KMS Forensic Seal
+python scripts/aegis_replay.py --scenario 1 --mode dry-run
+
+# Replay all 8 purple-team attack scenarios and output machine-readable verification
+python scripts/aegis_replay.py --scenario all --mode dry-run
+```
+
+### 4. Interactive AWS Cost Calculator
+```bash
+# Estimate monthly AWS spend comparing Enterprise Full vs AEGIS Lite
+python scripts/cost_calculator.py --rate 1000 --accounts 3 --retention 90
+```
+
+### 5. Run Live Purple-Team Attack Suite Against AWS
 ```bash
 # Executes all 8 attack scenarios, triggers detection, and validates containment
 python scripts/run_live_ordered_attacks.py
@@ -432,10 +466,15 @@ python scripts/run_live_ordered_attacks.py
 
 ## Complete Documentation Index
 
+- **[AEGIS Lite — Single-Account Minimal Deployment Guide](docs/quickstart-lite.md)**
+- **[MITRE ATT&CK Matrix & Cloud Defense Coverage](docs/mitre-coverage.md)**
+- **[Risk Calibration Framework & Threshold Governance](docs/risk-calibration-framework.md)**
+- **[Behavioral ML Evaluation & Paradigm Benchmark Report](docs/ml-evaluation.md)**
+- **[AWS Infrastructure Cost Model & Calculator Guide](docs/cost-calculator.md)**
 - **[Official AEGIS Project Report & Evidence Dossier](docs/PROJECT_REPORT.md)**
 - **[Download Official Project Report PDF](docs/AEGIS_Project_Report.pdf)**
 - [Final Engineering Verification Dossier](docs/PROJECT_AEGIS_FINAL_DOSSIER.md)
-- [Final Security Audit Report](docs/final-security-audit.md)
+- [AEGIS Internal Security Assessment & Codebase Audit Review](docs/final-security-audit.md)
 - [Architecture Review & Systems Specification](docs/architecture-review.md)
 - [STRIDE Threat Model & Adversary Countermeasures](docs/threat-model-final.md)
 - [Incident Response & Autonomous Self-Healing Runbook](docs/incident-response-final.md)
@@ -447,6 +486,10 @@ python scripts/run_live_ordered_attacks.py
 - [Staff/Principal Security Engineer Interview Master Guide](docs/interview-guide.md)
 - [Purple-Team Attack Scenario Catalog](docs/attack-scenarios/README.md)
 - [Infrastructure as Code (Terraform) Documentation](terraform/modules/README.md)
+- [Security Policy & Vulnerability Disclosure](SECURITY.md)
+- [Contribution Guidelines & Local Setup](CONTRIBUTING.md)
+- [Contributor Code of Conduct](CODE_OF_CONDUCT.md)
+- [Project Changelog](CHANGELOG.md)
 
 ---
 
@@ -463,3 +506,4 @@ python scripts/run_live_ordered_attacks.py
 ## License
 
 Apache License 2.0. See [LICENSE](LICENSE) for details.
+

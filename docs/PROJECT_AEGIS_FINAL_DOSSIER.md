@@ -15,7 +15,7 @@
 
 ## 1. Executive Summary
 
-**Project AEGIS** (*Autonomous Enterprise Guardian for Incident Security*) is an enterprise-grade, cloud-native Security Operations and Active Defense platform designed to safeguard multi-account AWS environments. AEGIS bridges the critical gap between sub-millisecond threat detection, autonomous SOAR incident containment, distributed race-condition prevention, SEC Rule 17a-4 compliant digital forensics, and secure SOC War Room operations.
+**Project AEGIS** (*Autonomous Enterprise Guardian for Incident Security*) is an enterprise-grade, cloud-native Security Operations and Active Defense platform designed to safeguard multi-account AWS environments. AEGIS bridges the critical gap between sub-millisecond threat detection, autonomous SOAR incident containment, distributed race-condition prevention, SEC Rule 17a-4-oriented immutable digital forensics, and secure SOC War Room operations.
 
 During this operational evaluation, the platform was deployed into dedicated AWS security infrastructure in `us-east-1`. The system operated **100% autonomously in the AWS cloud while the engineer's workstation was completely powered off**, executing continuous purple-team attack simulations and containment workflows every 15 minutes. 
 
@@ -35,7 +35,7 @@ The following table indexes all verified evidence captured across the 16 pages o
 | **Page 04** | SOAR Incident Orchestrator | `aegis-containment-orchestrator-security-lab` | Automated containment branching and approval workflow logic |
 | **Page 05** | Distributed Idempotency Store | `aegis-remediation-idempotency-security-lab` | Atomic locking with TTL prevents double-containment and race conditions |
 | **Page 06** | Lab Attack Metrics & Audit Table | `aegis-lab-executions-security-lab` | 32 audit records logged with sub-millisecond latencies and risk scores |
-| **Page 07** | WORM Digital Forensics Vault | `s3://aegis-forensics-vault-197550036081` | 90-Day Object Lock in Governance mode compliant with SEC Rule 17a-4 |
+| **Page 07** | WORM Digital Forensics Vault | `s3://aegis-forensics-vault-197550036081` | 90-Day Object Lock aligned with SEC Rule 17a-4 (Governance for lab, Compliance for prod) |
 | **Page 08** | Sealed Forensic Dossiers | `s3://.../lab-evidence/` | 32 immutable, SHA-256 hashed forensic evidence artifacts stored in S3 |
 | **Page 09** | Envelope KMS Foundation | `alias/aegis-central-logs`, `alias/aegis-forensic-evidence` | Customer Managed Keys (CMK) enforcing hardware-backed encryption |
 | **Page 10** | Custom Security EventBridge Bus | `aegis-findings-bus` | Event-driven decoupling routing critical findings to SOAR and audit queues |
@@ -80,7 +80,7 @@ The following table indexes all verified evidence captured across the 16 pages o
 * **Page 07 — S3 Forensics Vault WORM Object Lock**:
   - **Bucket:** `aegis-forensics-vault-197550036081`
   - **Compliance Mode:** Object Lock is `Enabled` with **Default Retention Mode: Governance** set for **90 Days**.
-  - **Regulatory Alignment:** Satisfies SEC Rule 17a-4(f) and FINRA Rule 4511 requirements. Forensic records written to this bucket are cryptographically locked and immutable against unauthorized modification or deletion.
+  - **Regulatory Alignment:** Aligns with SEC Rule 17a-4(f) and FINRA Rule 4511 technical specifications. Forensic records written to this bucket are cryptographically locked and immutable against unauthorized modification or deletion.
 
 * **Page 08 — Cryptographically Sealed Forensic Dossiers**:
   - Vault directory `s3://aegis-forensics-vault-197550036081/lab-evidence/` contains 32 individual evidence files (`SCENARIO-01_exec-...json`, etc.).
