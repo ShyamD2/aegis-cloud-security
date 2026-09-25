@@ -116,7 +116,9 @@ def run_attack_replay(
     ocsf_event = OCSFAdapter.from_normalized_event(sample_normalized_event)
 
     # Step 3: Forensic Cryptographic Evidence Dossier Assembly & KMS Asymmetric Signing
-    collector = EvidenceCollector(vault_bucket="aegis-forensic-vault-lab", object_lock_mode="COMPLIANCE")
+    collector = EvidenceCollector(
+        vault_bucket="aegis-forensic-vault-lab", object_lock_mode="COMPLIANCE"
+    )
     raw_forensic_payload = {
         "scenario_id": scenario.scenario_id,
         "mitre_technique": f"{mitre_id} ({mitre_name})",
@@ -152,7 +154,9 @@ def run_attack_replay(
     # Apply Asymmetric RSA-PSS digital signature
     priv_pem, pub_pem = generate_ephemeral_keypair()
     signed_manifest = collector.sign_manifest(manifest, private_key_pem=priv_pem)
-    auth_verified, auth_msg = collector.verify_manifest_authenticity(signed_manifest, public_key_pem=pub_pem)
+    auth_verified, auth_msg = collector.verify_manifest_authenticity(
+        signed_manifest, public_key_pem=pub_pem
+    )
 
     # Stage latencies
     det_latency = execution_result.stage_latencies_ms.get("DETECTION", 0.28)
@@ -171,13 +175,17 @@ def run_attack_replay(
         "detection_rule_id": execution_result.detection_rule_id or "AEGIS-DET-001",
         "detection_latency_ms": round(det_latency, 3),
         "risk_latency_ms": round(risk_latency, 3),
-        "containment_latency_sec": round(resp_latency / 1000.0, 3) if resp_latency > 50 else round(resp_latency, 3),
+        "containment_latency_sec": round(resp_latency / 1000.0, 3)
+        if resp_latency > 50
+        else round(resp_latency, 3),
         "total_e2e_time_sec": round(total_latency_sec, 3),
         "risk_score": execution_result.calculated_risk_score or 85.0,
         "ocsf_class": f"{ocsf_event.class_uid.name} (UID {int(ocsf_event.class_uid)})",
         "ocsf_category": f"{ocsf_event.category_uid.name} (UID {int(ocsf_event.category_uid)})",
         "manifest_sha256": signed_manifest.manifest_sha256,
-        "kms_signature": signed_manifest.signature[:32] + "..." if signed_manifest.signature else "None",
+        "kms_signature": signed_manifest.signature[:32] + "..."
+        if signed_manifest.signature
+        else "None",
         "signing_algorithm": signed_manifest.signing_algorithm,
         "object_lock_mode": signed_manifest.object_lock_mode,
         "authenticity_verified": auth_verified,
@@ -186,9 +194,15 @@ def run_attack_replay(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="AEGIS Attack Replay & Verified Response Engine CLI")
-    parser.add_argument("--scenario", "-s", type=str, default="1", help="Scenario number 1-8, or 'all'")
-    parser.add_argument("--mode", "-m", choices=["enforce", "dry-run", "recommendation"], default="enforce")
+    parser = argparse.ArgumentParser(
+        description="AEGIS Attack Replay & Verified Response Engine CLI"
+    )
+    parser.add_argument(
+        "--scenario", "-s", type=str, default="1", help="Scenario number 1-8, or 'all'"
+    )
+    parser.add_argument(
+        "--mode", "-m", choices=["enforce", "dry-run", "recommendation"], default="enforce"
+    )
     parser.add_argument("--json", action="store_true", help="Output results in JSON format")
 
     args = parser.parse_args()
@@ -207,7 +221,9 @@ def main() -> None:
                 raise ValueError
             scenarios_to_run = [s_num]
         except ValueError:
-            print(f"Error: Invalid scenario '{args.scenario}'. Choose 1-8 or 'all'.", file=sys.stderr)
+            print(
+                f"Error: Invalid scenario '{args.scenario}'. Choose 1-8 or 'all'.", file=sys.stderr
+            )
             sys.exit(1)
 
     results = []
@@ -232,14 +248,22 @@ def main() -> None:
         print(f"OCSF Mapping:      {r['ocsf_class']} | {r['ocsf_category']}")
         print(f"Remediation:       {r['expected_remediation']} (Mode: {args.mode.upper()})")
         print("-" * 76)
-        print(f"Detection Engine:  PASS  [Rule: {r['detection_rule_id']}, Latency: {r['detection_latency_ms']} ms]")
-        print(f"Risk Engine:       PASS  [Score: {r['risk_score']}/100, Latency: {r['risk_latency_ms']} ms]")
-        print(f"SOAR Containment:  PASS  [Latency: {r['containment_latency_sec']}s, Mode: {args.mode.upper()}]")
-        print(f"Post-Condition:    PASS  [Containment verified & validated]")
+        print(
+            f"Detection Engine:  PASS  [Rule: {r['detection_rule_id']}, Latency: {r['detection_latency_ms']} ms]"
+        )
+        print(
+            f"Risk Engine:       PASS  [Score: {r['risk_score']}/100, Latency: {r['risk_latency_ms']} ms]"
+        )
+        print(
+            f"SOAR Containment:  PASS  [Latency: {r['containment_latency_sec']}s, Mode: {args.mode.upper()}]"
+        )
+        print("Post-Condition:    PASS  [Containment verified & validated]")
         print(f"Forensic Seal:     PASS  [KMS RSASSA-PSS Signature + S3 {r['object_lock_mode']}]")
         print(f"Evidence Digest:   {r['manifest_sha256']}")
         print(f"Digital Signature: {r['kms_signature']} ({r['signing_algorithm']})")
-        print(f"Authenticity Check:{'PASS' if r['authenticity_verified'] else 'FAIL'} ({r['auth_message']})")
+        print(
+            f"Authenticity Check:{'PASS' if r['authenticity_verified'] else 'FAIL'} ({r['auth_message']})"
+        )
         print("-" * 76)
         print(f"FINAL RESULT:      {r['status']} (Total E2E Pipeline: {r['total_e2e_time_sec']}s)")
         print("=" * 76 + "\n")

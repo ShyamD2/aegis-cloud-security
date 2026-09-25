@@ -38,9 +38,11 @@ class RemediationStatus(StrEnum):
 class RemediationExecutionMode(StrEnum):
     """Operational mode governing autonomous remediation execution safety."""
 
-    RECOMMENDATION = "RECOMMENDATION"  # Safe default: generate advisory proposal without mutating AWS
-    DRY_RUN = "DRY_RUN"                # Simulate validation & snapshot without mutating AWS
-    ENFORCE = "ENFORCE"                # Active execution with automated post-verification & rollback
+    RECOMMENDATION = (
+        "RECOMMENDATION"  # Safe default: generate advisory proposal without mutating AWS
+    )
+    DRY_RUN = "DRY_RUN"  # Simulate validation & snapshot without mutating AWS
+    ENFORCE = "ENFORCE"  # Active execution with automated post-verification & rollback
 
 
 class ContainmentSafetyPolicy(BaseModel):
@@ -49,12 +51,24 @@ class ContainmentSafetyPolicy(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     action: RemediationAction
-    minimum_risk_score: float = Field(ge=0.0, le=100.0, description="Minimum risk score required to trigger action")
-    minimum_confidence: float = Field(default=0.75, ge=0.0, le=1.0, description="Minimum detection confidence required")
-    blast_radius_scope: str = Field(description="Operational scope (e.g. single_credential, single_instance, account_wide)")
-    is_reversible: bool = Field(default=True, description="Whether this containment action supports automated rollback")
-    requires_human_approval: bool = Field(default=False, description="Whether action requires explicit SOC operator approval")
-    requires_post_verification: bool = Field(default=True, description="Whether immediate post-condition check is enforced")
+    minimum_risk_score: float = Field(
+        ge=0.0, le=100.0, description="Minimum risk score required to trigger action"
+    )
+    minimum_confidence: float = Field(
+        default=0.75, ge=0.0, le=1.0, description="Minimum detection confidence required"
+    )
+    blast_radius_scope: str = Field(
+        description="Operational scope (e.g. single_credential, single_instance, account_wide)"
+    )
+    is_reversible: bool = Field(
+        default=True, description="Whether this containment action supports automated rollback"
+    )
+    requires_human_approval: bool = Field(
+        default=False, description="Whether action requires explicit SOC operator approval"
+    )
+    requires_post_verification: bool = Field(
+        default=True, description="Whether immediate post-condition check is enforced"
+    )
 
 
 DEFAULT_SAFETY_POLICIES: dict[RemediationAction, ContainmentSafetyPolicy] = {

@@ -70,10 +70,9 @@ class RemediationOrchestrator:
             self.default_mode = RemediationExecutionMode.ENFORCE
 
         # Safety & Governance controls
-        self.kill_switch_active = (
-            kill_switch_active
-            or os.environ.get("AEGIS_KILL_SWITCH_ACTIVE", "").lower() in ("true", "1", "yes")
-        )
+        self.kill_switch_active = kill_switch_active or os.environ.get(
+            "AEGIS_KILL_SWITCH_ACTIVE", ""
+        ).lower() in ("true", "1", "yes")
         self.max_actions_per_account_hour = max_actions_per_account_hour
         self.safety_policies = safety_policies or DEFAULT_SAFETY_POLICIES
         self._account_action_history: dict[str, list[float]] = defaultdict(list)
@@ -122,7 +121,11 @@ class RemediationOrchestrator:
         effective_mode = request.execution_mode or self.default_mode
 
         # Step 1: Emergency Kill Switch Gate
-        if self.kill_switch_active or os.environ.get("AEGIS_KILL_SWITCH_ACTIVE", "").lower() in ("true", "1", "yes"):
+        if self.kill_switch_active or os.environ.get("AEGIS_KILL_SWITCH_ACTIVE", "").lower() in (
+            "true",
+            "1",
+            "yes",
+        ):
             logger.warning("AEGIS Kill Switch is ACTIVE. Halting all automated remediations.")
             return RemediationResult(
                 remediation_id=request.remediation_id,

@@ -7,7 +7,7 @@ for AWS CloudTrail, VPC Flow, DNS, GuardDuty, and Security Hub telemetry.
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from enum import IntEnum, StrEnum
+from enum import IntEnum
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -168,7 +168,10 @@ class OCSFAdapter:
             category_uid = OCSFCategory.IDENTITY_ACCESS_MANAGEMENT
             activity_id = 1
             activity_name = "Logon / AssumeRole"
-        elif any(term in action_lower for term in ["create", "delete", "attach", "detach", "put", "update"]):
+        elif any(
+            term in action_lower
+            for term in ["create", "delete", "attach", "detach", "put", "update"]
+        ):
             if "iam" in event.source.lower() or "iam" in action_lower:
                 class_uid = OCSFClass.ACCOUNT_CHANGE
                 category_uid = OCSFCategory.IDENTITY_ACCESS_MANAGEMENT
@@ -210,7 +213,9 @@ class OCSFAdapter:
                 region=event.region,
             ),
             actor=OCSFActorUser(
-                name=event.principal_arn.split("/")[-1] if "/" in event.principal_arn else event.principal_arn,
+                name=event.principal_arn.split("/")[-1]
+                if "/" in event.principal_arn
+                else event.principal_arn,
                 uid=event.principal_arn,
                 type=event.principal_type,
             ),
@@ -257,7 +262,10 @@ class OCSFAdapter:
         if "AssumeRole" in event_name or "Login" in event_name:
             class_uid = OCSFClass.AUTHENTICATION
             category_uid = OCSFCategory.IDENTITY_ACCESS_MANAGEMENT
-        elif any(kw in event_name for kw in ["Create", "Delete", "Attach", "Put"]) and "iam" in event_source:
+        elif (
+            any(kw in event_name for kw in ["Create", "Delete", "Attach", "Put"])
+            and "iam" in event_source
+        ):
             class_uid = OCSFClass.ACCOUNT_CHANGE
             category_uid = OCSFCategory.IDENTITY_ACCESS_MANAGEMENT
         else:
@@ -342,7 +350,9 @@ class OCSFAdapter:
         """Converts an OCSFEvent into an AEGIS NormalizedSecurityEvent."""
         action = ocsf_event.api.operation if ocsf_event.api else ocsf_event.activity_name
         source = ocsf_event.api.service if ocsf_event.api else "ocsf.standard"
-        event_id = ocsf_event.raw_payload.get("event_id") or f"ocsf-{int(ocsf_event.time.timestamp())}"
+        event_id = (
+            ocsf_event.raw_payload.get("event_id") or f"ocsf-{int(ocsf_event.time.timestamp())}"
+        )
 
         return NormalizedSecurityEvent(
             event_id=event_id,

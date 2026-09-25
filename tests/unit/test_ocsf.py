@@ -12,7 +12,6 @@ from services.common.ocsf import (
     OCSFAdapter,
     OCSFCategory,
     OCSFClass,
-    OCSFEvent,
     OCSFSeverity,
 )
 

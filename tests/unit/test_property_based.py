@@ -48,7 +48,9 @@ def test_property_risk_score_always_bounded() -> None:
                             cross_account=True,
                         )
                         assessment = engine.evaluate(ctx)
-                        assert 0.0 <= assessment.risk_score <= 100.0, f"Violation: score={assessment.risk_score}"
+                        assert 0.0 <= assessment.risk_score <= 100.0, (
+                            f"Violation: score={assessment.risk_score}"
+                        )
 
 
 def test_property_monotonicity_under_severity_escalation() -> None:
@@ -77,7 +79,7 @@ def test_property_monotonicity_under_severity_escalation() -> None:
         scores.append(engine.evaluate(ctx).risk_score)
 
     for i in range(len(scores) - 1):
-        assert scores[i] <= scores[i + 1], f"Monotonicity violated: {scores[i]} > {scores[i+1]}"
+        assert scores[i] <= scores[i + 1], f"Monotonicity violated: {scores[i]} > {scores[i + 1]}"
 
 
 def test_property_canonical_hashing_invariance_to_key_order() -> None:

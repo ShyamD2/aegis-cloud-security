@@ -47,7 +47,9 @@ def calculate_monthly_cost(
     # Amazon SageMaker Serverless Inference: $0.000020 per compute second + $0.20/million requests
     # Batch inference: 1 call per 100 events
     sagemaker_invocations = monthly_events / 100.0
-    sagemaker_cost = (sagemaker_invocations / 1_000_000 * 0.20) + (sagemaker_invocations * 0.030 * 0.000020)
+    sagemaker_cost = (sagemaker_invocations / 1_000_000 * 0.20) + (
+        sagemaker_invocations * 0.030 * 0.000020
+    )
 
     # Step Functions (Standard): Only triggers on HIGH/CRITICAL findings (~0.05% of events)
     remediation_events = monthly_events * 0.0005
@@ -140,8 +142,12 @@ def main() -> None:
         sys.stdout.reconfigure(encoding="utf-8")
 
     parser = argparse.ArgumentParser(description="AEGIS AWS Operational Cost Calculator CLI")
-    parser.add_argument("--rate", "-r", type=float, default=1000.0, help="Ingestion rate in events/second")
-    parser.add_argument("--accounts", "-a", type=int, default=3, help="Number of monitored AWS accounts")
+    parser.add_argument(
+        "--rate", "-r", type=float, default=1000.0, help="Ingestion rate in events/second"
+    )
+    parser.add_argument(
+        "--accounts", "-a", type=int, default=3, help="Number of monitored AWS accounts"
+    )
     parser.add_argument("--retention", type=int, default=90, help="S3 Object Lock retention days")
     parser.add_argument("--json", action="store_true", help="Output results in JSON format")
 
@@ -154,34 +160,50 @@ def main() -> None:
 
     p = report["parameters"]
     f = report["enterprise_full"]
-    l = report["aegis_lite"]
+    lite = report["aegis_lite"]
 
     print("\n" + "=" * 76)
     print("[AEGIS COST CALCULATOR] PROJECTED AWS MONTHLY OPERATIONAL SPEND")
     print("=" * 76)
-    print(f"Ingestion Throughput:  {p['events_per_sec']:,.0f} events/sec ({p['monthly_events']:,} events/month)")
+    print(
+        f"Ingestion Throughput:  {p['events_per_sec']:,.0f} events/sec ({p['monthly_events']:,} events/month)"
+    )
     print(f"Monthly Data Volume:   {p['monthly_gb_ingested']:,.2f} GB/month")
     print(f"Monitored Accounts:    {p['account_count']} AWS Accounts")
     print(f"Evidence Retention:    {p['retention_days']} Days (S3 Object Lock COMPLIANCE)")
     print("-" * 76)
     print(f"{'AWS Service / Component':<32} | {'Enterprise Full':<16} | {'AEGIS Lite':<16}")
     print("-" * 76)
-    print(f"{'Ingestion (Kinesis vs SQS)':<32} | ${f['kinesis']:>14.2f} | ${l['sqs']:>14.2f}")
-    print(f"{'Lambda Event Processors':<32} | ${f['lambda']:>14.2f} | ${l['lambda']:>14.2f}")
-    print(f"{'Attack Graph (Neptune vs Dynamo)':<32} | ${f['neptune_serverless']:>14.2f} | ${l['dynamodb_graph']:>14.2f}")
-    print(f"{'Anomaly Engine (SageMaker vs In-Mem)':<32} | ${f['sagemaker_inference']:>14.2f} | ${l['in_process_ml']:>14.2f}")
-    print(f"{'SOAR Orchestrator (SFn Standard/Exp)':<32} | ${f['step_functions']:>14.2f} | ${l['step_functions_express']:>14.2f}")
-    print(f"{'Forensic S3 WORM Vault':<32} | ${f['s3_worm_vault']:>14.2f} | ${l['s3_worm_vault']:>14.2f}")
-    print(f"{'Customer-Managed KMS Keys':<32} | ${f['kms']:>14.2f} | ${l['kms']:>14.2f}")
+    print(f"{'Ingestion (Kinesis vs SQS)':<32} | ${f['kinesis']:>14.2f} | ${lite['sqs']:>14.2f}")
+    print(f"{'Lambda Event Processors':<32} | ${f['lambda']:>14.2f} | ${lite['lambda']:>14.2f}")
+    print(
+        f"{'Attack Graph (Neptune vs Dynamo)':<32} | ${f['neptune_serverless']:>14.2f} | ${lite['dynamodb_graph']:>14.2f}"
+    )
+    print(
+        f"{'Anomaly Engine (SageMaker vs In-Mem)':<32} | ${f['sagemaker_inference']:>14.2f} | ${lite['in_process_ml']:>14.2f}"
+    )
+    print(
+        f"{'SOAR Orchestrator (SFn Standard/Exp)':<32} | ${f['step_functions']:>14.2f} | ${lite['step_functions_express']:>14.2f}"
+    )
+    print(
+        f"{'Forensic S3 WORM Vault':<32} | ${f['s3_worm_vault']:>14.2f} | ${lite['s3_worm_vault']:>14.2f}"
+    )
+    print(f"{'Customer-Managed KMS Keys':<32} | ${f['kms']:>14.2f} | ${lite['kms']:>14.2f}")
     print("-" * 76)
-    print(f"{'TOTAL MONTHLY ESTIMATE':<32} | \033[94m${f['total_monthly']:>14.2f}\033[0m | \033[92m${l['total_monthly']:>14.2f}\033[0m")
+    print(
+        f"{'TOTAL MONTHLY ESTIMATE':<32} | \033[94m${f['total_monthly']:>14.2f}\033[0m | \033[92m${lite['total_monthly']:>14.2f}\033[0m"
+    )
     print("=" * 76)
     print(f"Cost Reduction with AEGIS Lite: {report['savings_percentage']}% savings")
     print("Recommendation:")
     if args.rate <= 2000:
-        print("  -> Use AEGIS Lite: Ideal for staging, startups, and workloads under 2,000 events/sec.")
+        print(
+            "  -> Use AEGIS Lite: Ideal for staging, startups, and workloads under 2,000 events/sec."
+        )
     else:
-        print("  -> Use Enterprise Full: Ideal for multi-account enterprise estates with complex attack graphs.")
+        print(
+            "  -> Use Enterprise Full: Ideal for multi-account enterprise estates with complex attack graphs."
+        )
     print("-" * 76 + "\n")
 
 

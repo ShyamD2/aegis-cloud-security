@@ -5,8 +5,6 @@ Validates recommendation mode, dry-run mode, kill switch, blast-radius limits, a
 
 from __future__ import annotations
 
-import os
-
 from services.remediation.models import (
     RemediationAction,
     RemediationExecutionMode,

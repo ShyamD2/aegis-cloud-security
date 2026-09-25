@@ -224,7 +224,10 @@ class EvidenceCollector:
             return False, integrity_msg
 
         if not manifest.signature:
-            return False, "Authenticity failed: Manifest is missing cryptographic digital signature."
+            return (
+                False,
+                "Authenticity failed: Manifest is missing cryptographic digital signature.",
+            )
 
         digest_bytes = manifest.manifest_sha256.encode("utf-8")
         try:
@@ -264,7 +267,10 @@ class EvidenceCollector:
                 return False, f"Authenticity failed: Error loading public key ({e})."
 
         if manifest.object_lock_mode not in ("COMPLIANCE", "GOVERNANCE"):
-            return False, f"Immutability failed: Unrecognized Object Lock mode '{manifest.object_lock_mode}'."
+            return (
+                False,
+                f"Immutability failed: Unrecognized Object Lock mode '{manifest.object_lock_mode}'.",
+            )
 
         return (
             True,

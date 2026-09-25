@@ -67,18 +67,20 @@ def generate_realistic_benchmark_dataset(
                 api_frequency_1h=rng.uniform(0.15, 0.45),
                 api_sequence_entropy=rng.uniform(0.3, 0.55),
                 time_of_day_deviation=rng.uniform(0.7, 0.95),  # late night
-                source_ip_distance=rng.uniform(0.0, 0.15),      # internal corporate VPN
+                source_ip_distance=rng.uniform(0.0, 0.15),  # internal corporate VPN
                 region_deviation=0.0,
                 account_deviation=0.0,
-                privilege_score=rng.uniform(0.7, 0.9),         # high admin priv
+                privilege_score=rng.uniform(0.7, 0.9),  # high admin priv
                 resource_sensitivity=rng.uniform(0.4, 0.7),
                 unusual_service_flag=0.0,
             )
         elif variant == 1:
             # 10% CI/CD batch build: high frequency bursts, but repetitive sequence
             fv = FeatureVector(
-                api_frequency_1h=rng.uniform(0.70, 0.95),      # high rate
-                api_sequence_entropy=rng.uniform(0.05, 0.25),  # very low entropy (deterministic script)
+                api_frequency_1h=rng.uniform(0.70, 0.95),  # high rate
+                api_sequence_entropy=rng.uniform(
+                    0.05, 0.25
+                ),  # very low entropy (deterministic script)
                 time_of_day_deviation=rng.uniform(0.0, 0.3),
                 source_ip_distance=0.0,
                 region_deviation=0.0,
@@ -111,18 +113,18 @@ def generate_realistic_benchmark_dataset(
 
     # 2. Adversarial Traffic: Mix of loud attacks and stealth attacks
     for j in range(anomaly_count):
-        is_stealth = (j % 3 == 0)
+        is_stealth = j % 3 == 0
         if is_stealth:
             # Stealth living-off-the-land: low rate, standard hours, but external IP + abnormal role reachability
             fv = FeatureVector(
-                api_frequency_1h=rng.uniform(0.05, 0.25),       # looks normal!
+                api_frequency_1h=rng.uniform(0.05, 0.25),  # looks normal!
                 api_sequence_entropy=rng.uniform(0.40, 0.65),
-                time_of_day_deviation=rng.uniform(0.1, 0.35),   # normal work hours!
-                source_ip_distance=rng.uniform(0.85, 1.0),      # external adversary IP!
+                time_of_day_deviation=rng.uniform(0.1, 0.35),  # normal work hours!
+                source_ip_distance=rng.uniform(0.85, 1.0),  # external adversary IP!
                 region_deviation=rng.choice([0.0, 0.5]),
-                account_deviation=rng.choice([0.5, 1.0]),       # cross-account pivot
+                account_deviation=rng.choice([0.5, 1.0]),  # cross-account pivot
                 privilege_score=rng.uniform(0.6, 0.9),
-                resource_sensitivity=rng.uniform(0.7, 1.0),     # targeting sensitive S3/secrets
+                resource_sensitivity=rng.uniform(0.7, 1.0),  # targeting sensitive S3/secrets
                 unusual_service_flag=rng.choice([0.0, 1.0]),
             )
             desc = "Stealth Living-off-the-Land Reconnaissance"
@@ -198,7 +200,9 @@ def evaluate_paradigm(
 
 
 def run_benchmark() -> list[ParadigmBenchmark]:
-    all_samples = generate_realistic_benchmark_dataset(normal_count=2000, anomaly_count=300, seed=1337)
+    all_samples = generate_realistic_benchmark_dataset(
+        normal_count=2000, anomaly_count=300, seed=1337
+    )
 
     # 70% Train, 15% Val, 15% Test
     n = len(all_samples)
@@ -241,8 +245,8 @@ def run_benchmark() -> list[ParadigmBenchmark]:
         rule_hit = rule_only_detector(s)
 
         # Graph Context: Is principal connected to a sensitive path or cross-account trust?
-        has_graph_blast_path = (fv.account_deviation > 0.3 or fv.resource_sensitivity >= 0.6)
-        is_internal_vpn = (fv.source_ip_distance < 0.2)
+        has_graph_blast_path = fv.account_deviation > 0.3 or fv.resource_sensitivity >= 0.6
+        is_internal_vpn = fv.source_ip_distance < 0.2
 
         # Suppress legitimate on-call or batch actions that look unusual to raw ML
         if is_internal_vpn and fv.api_sequence_entropy < 0.35 and not rule_hit:
@@ -274,8 +278,12 @@ def main() -> None:
     print("[AEGIS RESEARCH] BEHAVIORAL ANOMALY DETECTION & PARADIGM COMPARISON MATRIX")
     print("=" * 88)
     print("Dataset: 2,300 Cloud Telemetry Samples (70% Train, 15% Val, 15% Test)")
-    print("Noise Incorporated: On-call emergency deployments, CI/CD batch bursts, living-off-the-land")
-    print("Features: 9 Dimensions (API Rate, Entropy, Time Deviation, IP Dist, Region, Account, Priv, Asset, Svc)")
+    print(
+        "Noise Incorporated: On-call emergency deployments, CI/CD batch bursts, living-off-the-land"
+    )
+    print(
+        "Features: 9 Dimensions (API Rate, Entropy, Time Deviation, IP Dist, Region, Account, Priv, Asset, Svc)"
+    )
     print("-" * 88)
 
     benchmarks = run_benchmark()
@@ -291,10 +299,18 @@ def main() -> None:
     print("=" * 88)
 
     print("\nEmpirical Findings & Operational Tradeoffs:")
-    print("  * Paradigm 1 (Rules Only): High precision (97.1%) but misses 28% of stealth/living-off-the-land attacks.")
-    print("  * Paradigm 2 (ML Only): High recall (95.6%) but incurs 5.3% false positive rate on batch/on-call tasks.")
-    print("  * Paradigm 3 (Hybrid): Captures virtually all threats (97.8% recall) but compounds false positives.")
-    print("  * Paradigm 4 (Contextual Graph): Delivers enterprise equilibrium: 96.8% Precision, 95.6% Recall, 1.3% FPR.")
+    print(
+        "  * Paradigm 1 (Rules Only): High precision (97.1%) but misses 28% of stealth/living-off-the-land attacks."
+    )
+    print(
+        "  * Paradigm 2 (ML Only): High recall (95.6%) but incurs 5.3% false positive rate on batch/on-call tasks."
+    )
+    print(
+        "  * Paradigm 3 (Hybrid): Captures virtually all threats (97.8% recall) but compounds false positives."
+    )
+    print(
+        "  * Paradigm 4 (Contextual Graph): Delivers enterprise equilibrium: 96.8% Precision, 95.6% Recall, 1.3% FPR."
+    )
     print("-" * 88 + "\n")
 
 

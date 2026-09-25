@@ -62,7 +62,9 @@ def test_asymmetric_kms_signature_verification() -> None:
     assert signed_manifest.signing_algorithm == "RSASSA_PSS_SHA_256"
 
     # Verify authenticity with public key
-    valid, msg = EvidenceCollector.verify_manifest_authenticity(signed_manifest, public_key_pem=pub_pem)
+    valid, msg = EvidenceCollector.verify_manifest_authenticity(
+        signed_manifest, public_key_pem=pub_pem
+    )
     assert valid is True
     assert "RSASSA_PSS_SHA_256" in msg
     assert "COMPLIANCE" in msg
@@ -91,17 +93,21 @@ def test_tampered_manifest_fails_authenticity_verification() -> None:
     signed_manifest = collector.sign_manifest(manifest, private_key_pem=priv_pem)
 
     # Case 1: Tamper with raw evidence data
-    tampered_items = [
-        ev1.model_copy(update={"raw_data": {"target": "bucket-tampered"}})
-    ]
+    tampered_items = [ev1.model_copy(update={"raw_data": {"target": "bucket-tampered"}})]
     tampered_manifest = signed_manifest.model_copy(update={"evidence_items": tampered_items})
 
-    valid, msg = EvidenceCollector.verify_manifest_authenticity(tampered_manifest, public_key_pem=pub_pem)
+    valid, msg = EvidenceCollector.verify_manifest_authenticity(
+        tampered_manifest, public_key_pem=pub_pem
+    )
     assert valid is False
     assert "Tampering detected" in msg
 
     # Case 2: Tamper with signature bytes
-    corrupted_sig_manifest = signed_manifest.model_copy(update={"signature": "QUFBQUFBQUFBQUFBQUFBQQ=="})
-    valid2, msg2 = EvidenceCollector.verify_manifest_authenticity(corrupted_sig_manifest, public_key_pem=pub_pem)
+    corrupted_sig_manifest = signed_manifest.model_copy(
+        update={"signature": "QUFBQUFBQUFBQUFBQUFBQQ=="}
+    )
+    valid2, msg2 = EvidenceCollector.verify_manifest_authenticity(
+        corrupted_sig_manifest, public_key_pem=pub_pem
+    )
     assert valid2 is False
     assert "Authenticity failed" in msg2
