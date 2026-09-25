@@ -23,7 +23,7 @@ jobs:
     if: ${{ vars.AWS_DEPLOY_ROLE != '' }}
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Configure AWS Credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
@@ -52,7 +52,7 @@ jobs:
     environment: production # Requires manual approval in GitHub repo settings
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Configure AWS Credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
